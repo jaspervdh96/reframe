@@ -238,7 +238,10 @@ class Relation(pd.DataFrame):
             return Relation(pd.concat([pd.DataFrame(self),pd.DataFrame(other)]))
 
     def minus(self,other):
-        """return a relation containing the rows in self 'but not' in other
+        """return a relation containing the rows in self 'but not' in other.
+        
+        In order to compute the minus the relations must be union compatible.  That is they must
+        have exactly the same columns.  This may require some projecting and renaming.
 
         :param other:
         :return:
@@ -293,7 +296,10 @@ class Relation(pd.DataFrame):
         230                               Zimbabwe   Eastern Africa    Africa
         234         British Indian Ocean Territory   Eastern Africa    Africa
         """
-        return Relation(self[~self.isin(other).all(1)])
+        if sorted(self.columns) != sorted(other.columns):
+            raise ValueError("Relations must be Union compatible")
+        else:
+            return Relation(pd.concat([self.merge(other), self]).drop_duplicates(keep=False))
 
 
     def rename(self,old,new):
